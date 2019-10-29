@@ -85,26 +85,51 @@
         <b class="action-name">{{action.name}}. </b> <md-viewer class='inline' :text="action.desc"></md-viewer>
       </p>
     </div>
+    <p v-if="spells.length">
+      <collapse>
+        <button slot="collapse-header">
+            Show associated spells
+        </button>
+        <div slot="collapse-body" class="spell-cards">
+          <div v-for="spell in spells" class="spell-card" v-bind:key="spell.slug">
+            <h4>{{spell.name}}</h4>
+            <p><em>{{spell.level}} {{spell.school}}</em> | {{spell.dnd_class}}</p>
+            <p><b>Range:</b> {{spell.range}}</p>
+            <p><b>Casting Time:</b> {{spell.casting_time}} <span v-if="spell.ritual === 'yes'">{{spell.ritual}} (Ritual)</span></p>
+            <p><b>Duration:</b> {{spell.duration}} <span v-if="spell.concentration === 'yes'">(Concentration)</span></p>
+            <p><b>Components: {{spell.components}} <span v-if="spell.material">({{spell.material}})</span></b></p>
+            <md-viewer :text="spell.desc"></md-viewer>
+            <p v-if="spell.higher_level"><b>At higher levels:</b> {{spell.higher_level}}</p>
+          </div>
+        </div>
+      </collapse>
+
+    </p>
   </section>
 </template>
 
 <script>
-import axios from 'axios'
-import StatBonus from '~/components/StatBonus.vue'
-import ChallengeRender from '~/components/ChallengeRender.vue'
+import axios from 'axios';
+import StatBonus from '~/components/StatBonus.vue';
+import ChallengeRender from '~/components/ChallengeRender.vue';
 import MdViewer from '~/components/MdViewer';
+import Collapse from '~/components/Collapse'
 
 export default {
   components: {
     StatBonus,
     ChallengeRender,
-    MdViewer
+    MdViewer,
+    Collapse,
   },
   created () {
     return axios.get(`${process.env.apiUrl}/monsters/${this.$route.params.id}`)
     .then(response => {
       this.monster = response.data;
       this.loading = false
+      if (this.monster.spell_list.length > 0) {
+        this.getSpellList(this.monster.spell_list);
+      }
     })
   },
   computed: {
@@ -122,7 +147,6 @@ export default {
       for (let i = 0; i < savesArray.length; i++) {
         const saveValue = this.monster[savesArray[i].name + '_save'];
         const statValue = this.monster[savesArray[i].name];
-        console.log(`${saveValue} vs ${statValue}`);
         if (saveValue !== null) {
           saves.push({name: savesArray[i].display, val: saveValue, type: 'bonus'})
         } else {
@@ -133,11 +157,27 @@ export default {
       return saves;
     },
   },
+  methods: {
+    getSpellList: function(spell_list) {
+      let spellNames = [];
+      for (let i = 0; i < spell_list.length; i++) {
+        let parts = spell_list[i].split("/")
+        var lastSegment = parts.pop() || parts.pop();
+        spellNames.push(lastSegment)
+      }
+      console.log(spellNames);
+      return axios.get(`${process.env.apiUrl}/spells?slug__in=${spellNames}`)
+      .then(response => {
+        this.spells = response.data.results
+      })
+    }
+  },
   data () {
     return {
       posts: [],
       errors: [],
       monster: [],
+      spells: [],
       loading: true,
     }
   },

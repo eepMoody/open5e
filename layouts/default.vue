@@ -432,4 +432,14 @@ footer {
     }
   }
 }
+
+@media print {
+  .app-wrapper {
+    overflow-y: visible;
+    height: auto;
+    .content-wrapper{
+      overflow-y: visible;
+    }
+  }
+}
 </style>
