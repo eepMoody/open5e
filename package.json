@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@nuxtjs/google-analytics": "^2.0.2",
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "nuxt": "^2.9.2",
     "underscore": "^1.9.1",
     "vue": "^2.6.10",
